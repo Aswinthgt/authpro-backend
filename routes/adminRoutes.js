@@ -1,21 +1,9 @@
 const adminRoute = require("express").Router();
 const { verifyToken } = require("../config/secret");
-const { User } = require("../models/user");
+const { details } =require("../controllers/adminController");
 
 
-adminRoute.get("/details", verifyToken, async (req, res) => {
-
-    const user = await User.find({});
-    let detail = [];
-    user.forEach(value => {
-        detail.push({ userName: `${value.firstName} ${value.lastName}`, role: value.role })
-    })
-    res.status(200).json({
-        role: "admin",
-        details: detail
-    });
-
-});
+adminRoute.get("/details", verifyToken, details);
 
 
 module.exports = adminRoute;
