@@ -1,0 +1,65 @@
+const { User } = require("../models/user");
+const path = require("path");
+const fs = require("fs");
+
+
+
+
+const imageUpload = async (req, res) => {
+
+    const final = await User.updateOne({ _id: req.userId }, {
+        $set: {
+            filename: req.file.filename,
+            imagePath: req.file.path
+        }
+    })
+
+    if (final.acknowledged == true) {
+        res.redirect("/profile/image");
+    } else {
+        res.status(404).json({ message: "Image not Found" });
+    }
+}
+
+
+
+const getImage = async (req, res) => {
+
+    const user = await User.findById(req.userId);
+    const paths = path.resolve(__dirname, '..');
+    res.sendFile(paths + '/' + user.imagePath);
+
+}
+
+
+
+const deleteImage  = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.userId);
+        const paths = path.resolve(__dirname, '..');
+        fs.unlink(paths + "/" + user.imagePath, err => {
+            if (err) {
+                console.error(err);
+            }
+        });
+        const mongoDelete = await User.findByIdAndUpdate(req.userId, {
+            $unset: { filename: '', imagePath: '' }
+        });
+        if (mongoDelete) {
+            res.send({ message: "Image deleted successfully!" });
+        }
+
+    } catch (e) {
+        return res.status(500).send('Server error');
+    }
+
+
+}
+
+
+
+
+
+
+module.exports = { imageUpload , getImage,deleteImage};
