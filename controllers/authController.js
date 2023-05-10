@@ -1,4 +1,5 @@
 const { User } = require("../models/user");
+const crypto = require("crypto");
 const { hashPassword, comparePassword } = require("../config/bcrypt");
 const { generateToken } = require("../config/secret");
 
@@ -30,17 +31,52 @@ const register = async (req, res) => {
         return res.status(409).json({ message: 'Email address already registered' });
     }
 
-    const password = await hashPassword(req.body.password);
-    const newUser = new User({
-        firstName: req.body.firstname,
-        lastName: req.body.lastname,
-        email: req.body.email,
-        phoneNumber: req.body.phone,
-        password: password,
-        role:'user'
-    });
+    const otp = crypto.randomInt(1000, 9999);
 
-    newUser.save().then(async (val) => {
+    ///otpsend code
+
+    const verifed = ''
+
+    if (verifed) {
+        const password = await hashPassword(req.body.password);
+        const newUser = new User({
+            firstName: req.body.firstname,
+            lastName: req.body.lastname,
+            email: req.body.email,
+            phoneNumber: req.body.phone,
+            password: password,
+            role: 'user',
+            otp: otp
+        });
+
+
+        await newUser.save().then(async () => {
+            res.status(200).json({ message: 'OTP sent to your email address. Please verify your email address.', phoneNumber: req.body.phone });
+        }).catch(err => {
+            res.status(500).json({ err });
+        })
+
+    }
+
+}
+
+
+
+const verify = async (req, res) => {
+
+    const { phoneNumber, otp } = req.body;
+
+    const user = await User.findOne({ phoneNumber });
+    if (!user) {
+        return res.status(400).send('Invalid');
+    }
+
+    if (user.otp !== otp) {
+        return res.status(400).send('Invalid OTP');
+    }
+
+    user.mobileVerified = true;
+    user.save().then(async (val) => {
         const token = await generateToken(val);
         if (!token) {
             res.status(401).json({ message: "Token Generation Failed" })
@@ -48,9 +84,8 @@ const register = async (req, res) => {
             res.status(200).json({ token })
         }
     }).catch(err => {
-        res.status(409).json({err});
-     })
-
+        res.status(409).json({ err });
+    })
 
 }
 
@@ -59,5 +94,6 @@ const register = async (req, res) => {
 
 module.exports = {
     login,
-    register
+    register,
+    verify
 }

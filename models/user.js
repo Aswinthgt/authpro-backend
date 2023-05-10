@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema({
         minlength: 8
     },
     role: String,
+    otp: String,
+    mobileVerified: String,
     filename:{
         type: String,
         required: false,
