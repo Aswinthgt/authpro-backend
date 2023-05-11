@@ -42,7 +42,31 @@ const register = async (req, res) => {
     const obj = req.body;
     obj.password = password;
     obj.otp = otp;
-    success = myCache.set(`${phonenumber}`, obj, 3 * 60);
+    success = myCache.set(`${phonenumber}`, obj, 5 * 60);
+
+    if (!success) {
+        return res.status(404).json({ message: "OTP Generating Failed" })
+    }
+
+    res.redirect(`/auth/otpgenerate?phone=${phonenumber}`)
+
+    
+}
+
+
+const otpgenerate = async (req, res) => {
+
+    const phonenumber = req.query.phone;
+
+    const value = myCache.get(`${phonenumber}`);
+    if (value == undefined) {
+        return res.status(498).json(`OTP Expired`)
+    }
+
+    const otp = crypto.randomInt(1000, 9999);
+    const obj = value;
+    obj.otp = otp;
+    success = myCache.set(`${phonenumber}`, obj, 5 * 60);
 
     if (!success) {
         return res.status(404).json({ message: "OTP Generating Failed" })
@@ -112,5 +136,6 @@ const verify = async (req, res) => {
 module.exports = {
     login,
     register,
-    verify
+    verify,
+    otpgenerate
 }
