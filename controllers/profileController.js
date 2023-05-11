@@ -33,7 +33,7 @@ const getImage = async (req, res) => {
 
 
 
-const deleteImage  = async (req, res) => {
+const deleteImage = async (req, res) => {
 
     try {
         const user = await User.findById(req.userId);
@@ -54,6 +54,17 @@ const deleteImage  = async (req, res) => {
         return res.status(500).send('Server error');
     }
 
+}
+
+const details = async (req, res) => {
+
+    const user = await User.findById(req.userId);
+    if (user.role === 'admin') {
+        return res.redirect("/admin/details");
+    }
+    if (user.role === "user") {
+        res.redirect("/user/details");
+    }
 
 }
 
@@ -62,4 +73,5 @@ const deleteImage  = async (req, res) => {
 
 
 
-module.exports = { imageUpload , getImage,deleteImage};
+
+module.exports = { imageUpload, getImage, deleteImage, details };

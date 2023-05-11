@@ -2,6 +2,12 @@ const { User } = require("../models/user");
 const crypto = require("crypto");
 const { hashPassword, comparePassword } = require("../config/bcrypt");
 const { generateToken } = require("../config/secret");
+const unirest = require("unirest");
+const NodeCache = require("node-cache");
+
+const myCache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
+
+
 
 const login = async (req, res) => {
 
@@ -30,34 +36,38 @@ const register = async (req, res) => {
     if (user) {
         return res.status(409).json({ message: 'Email address already registered' });
     }
-
+    const password = await hashPassword(req.body.password);
+    const phonenumber = req.body.phone
     const otp = crypto.randomInt(1000, 9999);
+    const obj = req.body;
+    obj.password = password;
+    obj.otp = otp;
+    success = myCache.set(`${phonenumber}`, obj, 3 * 60);
 
-    ///otpsend code
-
-    const verifed = ''
-
-    if (verifed) {
-        const password = await hashPassword(req.body.password);
-        const newUser = new User({
-            firstName: req.body.firstname,
-            lastName: req.body.lastname,
-            email: req.body.email,
-            phoneNumber: req.body.phone,
-            password: password,
-            role: 'user',
-            otp: otp
-        });
-
-
-        await newUser.save().then(async () => {
-            res.status(200).json({ message: 'OTP sent to your email address. Please verify your email address.', phoneNumber: req.body.phone });
-        }).catch(err => {
-            res.status(500).json({ err });
-        })
-
+    if (!success) {
+        return res.status(404).json({ message: "OTP Generating Failed" })
     }
 
+    await unirest.post('https://www.fast2sms.com/dev/bulkV2')
+        .headers({
+            'Authorization': process.env.OTP_AUTH,
+            "cache-control": "no-cache"
+        })
+        .send({
+            "variables_values": otp,
+            "route": "otp",
+            "numbers": phonenumber,
+        })
+        .end(async (response) => {
+            if (response.body.return) {
+                res.status(200).json({
+                    message: 'OTP sent to your Mobile. Please verify your Mobile.',
+                    phoneNumber: phonenumber
+                });
+            } else {
+                res.status(400).json({ message: `verification failed` })
+            }
+        });
 }
 
 
@@ -66,17 +76,24 @@ const verify = async (req, res) => {
 
     const { phoneNumber, otp } = req.body;
 
-    const user = await User.findOne({ phoneNumber });
-    if (!user) {
-        return res.status(400).send('Invalid');
+    const value = myCache.get(`${phoneNumber}`);
+    if (value == undefined) {
+        return res.status(498).json(`OTP Expired`)
     }
-
-    if (user.otp !== otp) {
+    if (parseInt(value.otp) !== parseInt(otp)) {
         return res.status(400).send('Invalid OTP');
     }
 
-    user.mobileVerified = true;
-    user.save().then(async (val) => {
+    const newUser = new User({
+        firstName: value.firstname,
+        lastName: value.lastname,
+        email: value.email,
+        phoneNumber: value.phone,
+        password: value.password,
+        role: 'user',
+    });
+
+    newUser.save().then(async (val) => {
         const token = await generateToken(val);
         if (!token) {
             res.status(401).json({ message: "Token Generation Failed" })
