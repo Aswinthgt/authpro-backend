@@ -31,7 +31,7 @@ try{
     "authorization": process.env.OTP_AUTH,
     "variables_values": "2299",
     "route": "otp",
-    "numbers": "9025294492"
+    "numbers": "9999999999"
   });
   
   sms.headers({
