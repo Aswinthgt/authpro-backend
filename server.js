@@ -19,7 +19,6 @@ app.use(express.json());
 
 
 app.use((req, res, next) => {
-
   const authPath = req.path.split("/")[1];
   if(authPath === "auth") {
     return next();

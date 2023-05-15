@@ -23,11 +23,15 @@ const imageUpload = async (req, res) => {
 
 
 
-const getImage = async (req, res) => {
+const getImage = async (req, res) => {  
 
-    const user = await User.findById(req.userId);
-    const paths = path.resolve(__dirname, '..');
-    res.sendFile(paths + '/' + user.imagePath);
+    const user = await User.findById(req.userId); 
+    if (!user.imagePath) {
+        res.status(404).json({ message: "image not Found" });
+    } else {
+        const paths = path.resolve(user.imagePath);
+        res.sendFile(paths);
+    }
 
 }
 
@@ -37,8 +41,7 @@ const deleteImage = async (req, res) => {
 
     try {
         const user = await User.findById(req.userId);
-        const paths = path.resolve(__dirname, '..');
-        fs.unlink(paths + "/" + user.imagePath, err => {
+        fs.unlink(user.imagePath, err => {
             if (err) {
                 console.error(err);
             }
