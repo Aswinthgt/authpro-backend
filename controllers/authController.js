@@ -182,7 +182,7 @@ const emailgenerate = async (req, res) => {
 
 
 
-const emaailVerification = async (req, res) => {
+const emailVerification = async (req, res) => {
 
     const { phone, email, token } = req.query;
 
@@ -224,5 +224,5 @@ module.exports = {
     verify,
     otpgenerate,
     emailgenerate,
-    emaailVerification
+    emailVerification
 }

@@ -1,21 +1,20 @@
 const profileRoute = require("express").Router();
-const { verifyToken } = require("../config/secret");
 const { User } = require("../models/user");
 const { upload } = require("../controllers/multer");
 const { imageUpload, getImage, deleteImage, details } = require("../controllers/profileController");
 
 
 
-profileRoute.post("/imageupload", verifyToken, upload.single('image'), imageUpload);
+profileRoute.post("/imageupload", upload.single('image'), imageUpload);
 
 
-profileRoute.get("/image", verifyToken, getImage);
+profileRoute.get("/image", getImage);
 
 
-profileRoute.delete("/image", verifyToken, deleteImage)
+profileRoute.delete("/image", deleteImage)
 
 
-profileRoute.get("/details", verifyToken, details)
+profileRoute.get("/details", details)
 
 
 

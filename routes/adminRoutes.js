@@ -3,7 +3,7 @@ const { verifyToken } = require("../config/secret");
 const { details } =require("../controllers/adminController");
 
 
-adminRoute.get("/details", verifyToken, details);
+adminRoute.get("/details",details);
 
 
 module.exports = adminRoute;

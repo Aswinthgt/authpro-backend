@@ -1,5 +1,5 @@
 const authRoute = require("express").Router();
-const { login, register, verify, otpgenerate, emailgenerate, emaailVerification } = require("../controllers/authController");
+const { login, register, verify, otpgenerate, emailgenerate, emailVerification } = require("../controllers/authController");
 
 
 
@@ -13,6 +13,6 @@ authRoute.post("/verification", verify)
 
 authRoute.post("/email-token-generate", emailgenerate);
 
-authRoute.get("/verify-email", emaailVerification)
+authRoute.get("/verify-email", emailVerification)
 
 module.exports = authRoute;
